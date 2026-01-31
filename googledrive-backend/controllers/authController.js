@@ -12,53 +12,77 @@ const signToken = (id) => {
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
-exports.register = async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
-
+exports.testEmail = async (req, res) => {
     try {
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ msg: 'User already exists' });
-        }
+        const { email } = req.query;
+        if (!email) return res.send('Please provide email query param. e.g. /test-email?email=you@test.com');
 
-        // Create verification token
-        const verificationToken = crypto.randomBytes(20).toString('hex');
+        console.log(`Testing email to: ${email}`);
+        console.log(`User: ${process.env.EMAIL_USER}`);
+        // Log stripped password length for safety
+        const pass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : 'MISSING';
+        console.log(`Pass Length: ${pass.length}`);
 
-        user = new User({
-            firstName,
-            lastName,
-            email,
-            password,
-            verificationToken,
-            isVerified: false // Explicitly false
+        await sendEmail({
+            email: email,
+            subject: 'Render Debug Email',
+            message: 'If you see this, email is working on Render!'
         });
 
-        await user.save();
-
-        // Send email
-        // Send email
-        const clientUrl = process.env.CLIENT_URL; // Using Env Variable
-        const verificationUrl = `${clientUrl}/verify-email/${verificationToken}`;
-        const message = `Please verify your email by clicking the link: \n\n ${verificationUrl}`;
-
-        try {
-            await sendEmail({
-                email: user.email,
-                subject: 'Account Verification - Google Drive Clone',
-                message
-            });
-            res.json({ msg: 'Registration successful. Please check your email to verify account.' });
-        } catch (error) {
-            console.error(error);
-            // If email fails, delete user so they can try again? Or just let them be unverified?
-            // For now, let's just error out
-            await User.findByIdAndDelete(user.id);
-            return res.status(500).json({ msg: 'Email could not be sent. Please try again.' });
-        }
+        res.send(`<h1>Email Sent Successfully to ${email}</h1>`);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error(err);
+        res.send(`<h1>Email Failed</h1><pre>${err.message}</pre><pre>${JSON.stringify(err, null, 2)}</pre>`);
     }
+};
+
+// @desc    Register new user
+const { firstName, lastName, email, password } = req.body;
+
+try {
+    let user = await User.findOne({ email });
+    if (user) {
+        return res.status(400).json({ msg: 'User already exists' });
+    }
+
+    // Create verification token
+    const verificationToken = crypto.randomBytes(20).toString('hex');
+
+    user = new User({
+        firstName,
+        lastName,
+        email,
+        password,
+        verificationToken,
+        isVerified: false // Explicitly false
+    });
+
+    await user.save();
+
+    // Send email
+    // Send email
+    const clientUrl = process.env.CLIENT_URL; // Using Env Variable
+    const verificationUrl = `${clientUrl}/verify-email/${verificationToken}`;
+    const message = `Please verify your email by clicking the link: \n\n ${verificationUrl}`;
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Account Verification - Google Drive Clone',
+            message
+        });
+        res.json({ msg: 'Registration successful. Please check your email to verify account.' });
+    } catch (error) {
+        console.error(error);
+        // If email fails, delete user so they can try again? Or just let them be unverified?
+        // For now, let's just error out
+        await User.findByIdAndDelete(user.id);
+        return res.status(500).json({ msg: 'Email could not be sent. Please try again.' });
+    }
+} catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+}
 };
 
 // @desc    Verify Email
