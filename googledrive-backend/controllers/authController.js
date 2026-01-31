@@ -93,7 +93,7 @@ exports.register = async (req, res) => {
 
             await sendEmail({
                 email: user.email,
-                subject: 'Verify your email - Google Drive Clone',
+                subject: 'VERIFICATION REQUIRED - Google Drive Clone (V2)', // Updated Subject to track version
                 message: message, // Plain text fallback
                 html: htmlMessage // Rich HTML version
             });
