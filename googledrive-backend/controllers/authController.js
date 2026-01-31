@@ -69,10 +69,33 @@ exports.register = async (req, res) => {
         const message = `Please verify your email by clicking the link: \n\n ${verificationUrl}`;
 
         try {
+            // HTML Email Template
+            const htmlMessage = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #4285F4; margin: 0;">Google Drive Clone</h1>
+                </div>
+                <div style="padding: 20px; text-align: center;">
+                    <h2 style="color: #333333;">Verify your email address</h2>
+                    <p style="color: #666666; font-size: 16px; line-height: 1.5;">Thanks for signing up for Google Drive Clone! We're excited to have you on board.</p>
+                    <p style="color: #666666; font-size: 16px; line-height: 1.5;">Please confirm your email address to activate your account and start storing files.</p>
+                    <div style="margin: 30px 0;">
+                        <a href="${verificationUrl}" style="background-color: #4285F4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Verify Email Address</a>
+                    </div>
+                    <p style="color: #999999; font-size: 14px;">Or copy and paste this link into your browser:</p>
+                    <p style="color: #4285F4; font-size: 14px; word-break: break-all;">${verificationUrl}</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                    <p style="color: #999999; font-size: 12px;">This link will expire in 24 hours.</p>
+                </div>
+            </div>
+            `;
+
             await sendEmail({
                 email: user.email,
-                subject: 'Account Verification - Google Drive Clone',
-                message
+                subject: 'Verify your email - Google Drive Clone',
+                message: message, // Plain text fallback
+                html: htmlMessage // Rich HTML version
             });
             res.json({ msg: 'Registration successful. Please check your email to verify account.' });
         } catch (error) {

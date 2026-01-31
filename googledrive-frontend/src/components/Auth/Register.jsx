@@ -31,8 +31,8 @@ const Register = () => {
         const result = await register(dataToSend);
         if (result.success) {
             toast.success(result.msg);
-            // Ideally redirect to a "Verify your email" page, but login is fine as it will block them
-            navigate('/login');
+            // Redirect to dedicated verification sent page
+            navigate('/verify-email-sent');
         } else {
             toast.error(result.msg);
         }

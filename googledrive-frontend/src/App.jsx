@@ -8,6 +8,7 @@ import Register from './components/Auth/Register';
 import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
 import VerifyEmail from './components/Auth/VerifyEmail';
+import VerifyEmailSent from './components/Auth/VerifyEmailSent';
 import Dashboard from './pages/Dashboard';
 
 // Placeholder components
@@ -32,6 +33,7 @@ function App() {
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/reset-password/:token" element={<ResetPassword />} />
                         <Route path="/verify-email/:token" element={<VerifyEmail />} />
+                        <Route path="/verify-email-sent" element={<VerifyEmailSent />} />
                         <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                     </Routes>
                     <Toaster position="top-right" />
