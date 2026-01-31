@@ -3,17 +3,106 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useDropzone } from 'react-dropzone';
 import { FaFolder, FaFile, FaPlus, FaSignOutAlt, FaFolderPlus, FaTrash, FaGoogleDrive, FaBars, FaTimes } from 'react-icons/fa';
-// ... imports
+import Folder from '../components/Storage/Folder';
+import File from '../components/Storage/File';
+import toast from 'react-hot-toast';
+import API_URL from '../config';
 
 const Dashboard = () => {
-    // ... existing hooks
+    const { logout, user } = useAuth();
+    const [structure, setStructure] = useState({ folders: [], files: [] });
+    const [currentFolder, setCurrentFolder] = useState(null);
+    const [folderHistory, setFolderHistory] = useState([]);
+    const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+    const [newFolderName, setNewFolderName] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // ... existing functions
+    const fetchFiles = useCallback(async (folderId = null) => {
+        try {
+            const params = folderId ? { folderId } : {};
+            const res = await axios.get(`${API_URL}/api/files`, { params });
+            setStructure(res.data);
+        } catch (error) {
+            console.error("Error fetching files", error);
+            toast.error('Failed to load files');
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchFiles(currentFolder);
+    }, [currentFolder, fetchFiles]);
+
+    const onDrop = useCallback(async (acceptedFiles) => {
+        const formData = new FormData();
+        acceptedFiles.forEach(file => {
+            formData.append('file', file);
+        });
+        if (currentFolder) {
+            formData.append('parentFolderId', currentFolder);
+        }
+
+        try {
+            const toastId = toast.loading('Uploading file...');
+            await axios.post(`${API_URL}/api/files/upload`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            toast.dismiss(toastId);
+            toast.success('File uploaded successfully');
+            fetchFiles(currentFolder);
+        } catch (error) {
+            console.error(error);
+            toast.error('Upload failed');
+        }
+    }, [currentFolder, fetchFiles]);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, noClick: true });
+
+    const createFolder = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post(`${API_URL}/api/files/folder`, {
+                name: newFolderName,
+                parentFolderId: currentFolder
+            });
+            setNewFolderName('');
+            setIsCreateFolderOpen(false);
+            fetchFiles(currentFolder);
+            toast.success('Folder created');
+        } catch (error) {
+            toast.error('Failed to create folder');
+        }
+    };
+
+    const handleFolderClick = (folderId, folderName) => {
+        setFolderHistory([...folderHistory, { id: currentFolder, name: 'Back' }]); // Simple history
+        setCurrentFolder(folderId);
+    };
+
+    const handleUp = () => {
+        // Very basic navigation up
+        if (folderHistory.length > 0) {
+            const prev = folderHistory[folderHistory.length - 1];
+        }
+        setCurrentFolder(null); // Go to root for now on "Home"
+    };
+
+    const deleteItem = async (id, type) => {
+        // Confirmation?
+        if (!window.confirm('Are you sure?')) return;
+
+        try {
+            const endpoint = type === 'folder' ? `/api/files/folder/${id}` : `/api/files/${id}`;
+            await axios.delete(`${API_URL}${endpoint}`);
+            toast.success(`${type} deleted`);
+            fetchFiles(currentFolder);
+        } catch (error) {
+            toast.error(error.response?.data?.msg || 'Delete failed');
+        }
+    }
 
     return (
         <div {...getRootProps()} className="flex h-screen bg-gray-100">
-            {/* ... input ... */}
+            <input {...getInputProps()} />
 
             {/* Mobile Sidebar Overlay */}
             {isMobileMenuOpen && (
@@ -32,7 +121,6 @@ const Dashboard = () => {
                         <FaTimes size={24} />
                     </button>
                 </div>
-                {/* ... Sidebar Content ... */}
                 <div className="p-4">
                     <button
                         onClick={() => { setIsCreateFolderOpen(true); setIsMobileMenuOpen(false); }}
@@ -76,7 +164,11 @@ const Dashboard = () => {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden relative">
-                {/* ... drag overlay ... */}
+                {isDragActive && (
+                    <div className="absolute inset-0 z-50 bg-blue-100 bg-opacity-75 border-4 border-blue-500 border-dashed flex items-center justify-center">
+                        <p className="text-2xl font-bold text-blue-700">Drop files to upload</p>
+                    </div>
+                )}
 
                 {/* Header */}
                 <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
