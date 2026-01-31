@@ -76,11 +76,19 @@ exports.register = async (req, res) => {
             });
             res.json({ msg: 'Registration successful. Please check your email to verify account.' });
         } catch (error) {
-            console.error('Email Send Failed (Brevo Error).');
+            console.error('Email Send Failed (Network/Auth Error).');
             console.error(error);
-            // If email fails, delete user so they can try again
-            await User.findByIdAndDelete(user.id);
-            return res.status(500).json({ msg: 'Email could not be sent. Please try again.' });
+
+            // Log the link so Admin can manually verify user in logs
+            console.log('##################################################');
+            console.log('# MANUAL VERIFICATION LINK (COPY THIS)           #');
+            console.log(verificationUrl);
+            console.log('##################################################');
+
+            // Return Success so frontend doesn't hang.
+            return res.status(200).json({
+                msg: 'Registration Accepted! Email service is slow/blocked, but your account is created. Please Login.'
+            });
         }
     } catch (err) {
         console.error(err.message);

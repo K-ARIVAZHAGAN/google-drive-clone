@@ -1,7 +1,6 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-    // 1. Create a transporter
     const transporter = nodemailer.createTransport({
         host: 'smtp-relay.brevo.com',
         port: 587,
@@ -10,6 +9,10 @@ const sendEmail = async (options) => {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
         },
+        // TIMEOUTS ARE CRITICAL ON CLOUD TO PREVENT HANGING
+        connectionTimeout: 5000, // 5 seconds
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
         logger: true,
         debug: true
     });
