@@ -76,7 +76,7 @@ exports.register = async (req, res) => {
             });
             res.json({ msg: 'Registration successful. Please check your email to verify account.' });
         } catch (error) {
-            console.error('Email Send Failed.');
+            console.error('Email Send Failed (Brevo Error).');
             console.error(error);
             // If email fails, delete user so they can try again
             await User.findByIdAndDelete(user.id);

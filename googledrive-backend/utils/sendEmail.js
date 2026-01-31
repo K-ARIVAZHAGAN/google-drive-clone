@@ -3,17 +3,13 @@ const nodemailer = require('nodemailer');
 const sendEmail = async (options) => {
     // 1. Create a transporter
     const transporter = nodemailer.createTransport({
-        host: 'smtp.googlemail.com', // Alternate domain
-        port: 465,
-        secure: true, // SSL
-        family: 4, // Force IPv4
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS.replace(/\s+/g, '')
+            pass: process.env.EMAIL_PASS
         },
-        connectionTimeout: 5000,
-        greetingTimeout: 2000,
-        socketTimeout: 2000,
         logger: true,
         debug: true
     });
