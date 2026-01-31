@@ -14,7 +14,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL || '*'
+    origin: '*' // Temporarily allow all for debugging
 }));
 app.use(express.json());
 
