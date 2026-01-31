@@ -1,0 +1,13 @@
+Submission for Google Drive Clone Project
+
+Frontend URL:
+https://google-drive-clone-three-alpha.vercel.app
+
+Backend URL:
+https://google-drive-clone-2ga6.onrender.com
+
+Github Repository URL:
+https://github.com/K-Arivazhagan/google-drive-clone
+
+Last Committed Hash ID:
+109b8b0ca2c83ee57ae572207938de81b76fa42e7
