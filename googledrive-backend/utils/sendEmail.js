@@ -14,7 +14,7 @@ const sendEmail = async (options) => {
             from: 'Google Drive Clone <onboarding@resend.dev>', // Free tier must use this or verified domain
             to: [options.email], // Free tier only sends to your own email
             subject: options.subject,
-            html: options.message.replace(/\n/g, '<br>') // Simple conversion
+            html: options.html || options.message.replace(/\n/g, '<br>') // Use Rich HTML if provided, else text
         });
 
         if (error) {
