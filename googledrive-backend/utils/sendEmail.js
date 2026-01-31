@@ -3,11 +3,16 @@ const nodemailer = require('nodemailer');
 const sendEmail = async (options) => {
     // 1. Create a transporter
     const transporter = nodemailer.createTransport({
-        service: 'gmail', // Simplest for hackathons
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true, // use SSL
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS.replace(/\s+/g, '') // Remove spaces from App Password
-        }
+            pass: process.env.EMAIL_PASS.replace(/\s+/g, '') // Remove spaces
+        },
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 5000,
+        socketTimeout: 10000
     });
 
     // 2. Define email options
