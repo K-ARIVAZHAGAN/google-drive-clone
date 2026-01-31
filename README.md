@@ -3,6 +3,11 @@
 **Live Frontend (Vercel):** [https://google-drive-clone-three-alpha.vercel.app](https://google-drive-clone-three-alpha.vercel.app)
 **Live Backend (Render):** [https://google-drive-clone-2ga6.onrender.com](https://google-drive-clone-2ga6.onrender.com)
 
+> [!IMPORTANT]
+> **Free Tier Cold Start:** The Backend is hosted on Render's Free Tier, which "sleeps" after inactivity.
+> **PLEASE CLICK THE BACKEND LINK ABOVE FIRST** and wait for it to say "Google Drive Clone API is running" before using the Frontend.
+> This ensures the server is awake and ready to handle requests.
+
 ---
 
 ## 1. What is Google Drive?
