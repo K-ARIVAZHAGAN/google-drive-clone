@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import API_URL from '../../config';
@@ -7,6 +7,7 @@ import API_URL from '../../config';
 const VerifyEmail = () => {
     const { token } = useParams();
     const [status, setStatus] = useState('verifying'); // verifying, success, error
+    const navigate = useNavigate();
 
     useEffect(() => {
         const verify = async () => {
@@ -14,6 +15,10 @@ const VerifyEmail = () => {
                 await axios.post(`${API_URL}/api/auth/verify-email`, { token });
                 setStatus('success');
                 toast.success('Email verified successfully!');
+                // Auto-redirect to login after 2 seconds
+                setTimeout(() => {
+                    navigate('/login');
+                }, 2000);
             } catch (error) {
                 console.error(error);
                 setStatus('error');
@@ -24,7 +29,7 @@ const VerifyEmail = () => {
         if (token) {
             verify();
         }
-    }, [token]);
+    }, [token, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -39,8 +44,9 @@ const VerifyEmail = () => {
                     <>
                         <h2 className="text-2xl font-bold mb-4 text-green-600">Verified!</h2>
                         <p className="mb-6 text-gray-600">Your account has been successfully verified.</p>
+                        <p className="text-sm text-gray-500 mb-6">Redirecting to login in 2 seconds...</p>
                         <Link to="/login" className="inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Go to Login
+                            Login Now
                         </Link>
                     </>
                 )}
