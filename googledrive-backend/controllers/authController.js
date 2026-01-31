@@ -36,7 +36,9 @@ exports.register = async (req, res) => {
         await user.save();
 
         // Send email
-        const verificationUrl = `http://localhost:5173/verify-email/${verificationToken}`;
+        // Send email
+        const clientUrl = process.env.CLIENT_URL; // Using Env Variable
+        const verificationUrl = `${clientUrl}/verify-email/${verificationToken}`;
         const message = `Please verify your email by clicking the link: \n\n ${verificationUrl}`;
 
         try {
@@ -139,7 +141,8 @@ exports.forgotPassword = async (req, res) => {
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
 
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const clientUrl = process.env.CLIENT_URL;
+        const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
         const message = `You requested a password reset. Please click the link: \n\n ${resetUrl}`;
 
         try {
