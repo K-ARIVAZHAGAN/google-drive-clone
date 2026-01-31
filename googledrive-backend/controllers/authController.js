@@ -76,9 +76,9 @@ exports.register = async (req, res) => {
             });
             res.json({ msg: 'Registration successful. Please check your email to verify account.' });
         } catch (error) {
+            console.error('Email Send Failed.');
             console.error(error);
-            // If email fails, delete user so they can try again? Or just let them be unverified?
-            // For now, let's just error out
+            // If email fails, delete user so they can try again
             await User.findByIdAndDelete(user.id);
             return res.status(500).json({ msg: 'Email could not be sent. Please try again.' });
         }
