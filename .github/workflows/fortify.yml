@@ -77,8 +77,8 @@ jobs:
       
       # Upload SARIF file to GitHub Security tab
       - name: Upload SARIF file
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('./gh-fortify-sast.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: ./gh-fortify-sast.sarif
       
