@@ -43,12 +43,12 @@ jobs:
       # Install dependencies for backend
       - name: Install Backend Dependencies
         working-directory: ./googledrive-backend
-        run: npm ci --ignore-scripts || npm install
+        run: npm ci --ignore-scripts
       
       # Install dependencies for frontend
       - name: Install Frontend Dependencies
         working-directory: ./googledrive-frontend
-        run: npm ci --ignore-scripts || npm install
+        run: npm ci --ignore-scripts
       
       # Run Fortify on Demand Static Analysis
       - name: Run Fortify on Demand SAST Scan
