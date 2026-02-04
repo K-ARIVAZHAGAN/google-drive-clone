@@ -72,7 +72,97 @@ jobs:
         with:
           sast-scan: true
         env:
-          FOD_URL: ${{ secrets.FOD_URL }}
+          FOD_URL: # This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow performs a static security analysis of your source code using
+# Fortify on Demand (FoD). This workflow is intended for applications that 
+# are already onboarded to FoD. If you are not using FoD, you can remove this file.
+# 
+# IMPORTANT: This workflow requires valid Fortify on Demand credentials.
+# To use this workflow, you must:
+# 1. Sign up for Fortify on Demand at https://www.microfocus.com/en-us/products/application-security-testing/overview
+# 2. Onboard your application to FoD
+# 3. Configure the following repository secrets:
+#    - FOD_URL: Your FoD instance URL
+#    - FOD_TENANT: Your FoD tenant ID
+#    - FOD_USER: Your FoD username
+#    - FOD_PASSWORD: Your FoD password
+#    - FOD_RELEASE_ID: Your FoD release ID
+#
+# If these secrets are not configured, the workflow will be skipped automatically.
+
+name: Fortify Security Scan
+
+# DISABLED: This workflow is currently disabled because Fortify on Demand credentials are not configured.
+# To enable this workflow, configure the required repository secrets and uncomment the triggers below.
+
+# on:
+#   push:
+#     branches: [ "main", "master", "develop" ]
+#   pull_request:
+#     branches: [ "main", "master", "develop" ]
+#   schedule:
+#     - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight UTC
+#   workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  fortify-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            googledrive-backend/package-lock.json
+            googledrive-frontend/package-lock.json
+      
+      # Install dependencies for backend
+      - name: Install Backend Dependencies
+        working-directory: ./googledrive-backend
+        run: npm ci --ignore-scripts
+      
+      # Install dependencies for frontend
+      - name: Install Frontend Dependencies
+        working-directory: ./googledrive-frontend
+        run: npm ci --ignore-scripts
+      
+      # Run Fortify on Demand Static Analysis
+      - name: Run Fortify on Demand SAST Scan
+        uses: fortify/github-action@v1
+        with:
+          sast-scan: true
+        env:
+          FOD_URL: https://ams.fortify.com
+          FOD_TENANT: ${{ secrets.FOD_TENANT }}
+          FOD_USER: ${{ secrets.FOD_USER }}
+          FOD_PASSWORD: ${{ secrets.FOD_PASSWORD }}
+          FOD_RELEASE_ID: ${{ secrets.FOD_RELEASE_ID }}
+      
+      # Optional: Upload scan logs as artifacts for debugging
+      - name: Upload Scan Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fortify-scan-logs
+          path: |
+            fortify.log
+            **/*.fpr
+          retention-days: 30
+
           FOD_TENANT: ${{ secrets.FOD_TENANT }}
           FOD_USER: ${{ secrets.FOD_USER }}
           FOD_PASSWORD: ${{ secrets.FOD_PASSWORD }}
