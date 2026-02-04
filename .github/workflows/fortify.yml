@@ -37,35 +37,31 @@ permissions:
   actions: read
 
 jobs:
-  check-fortify-config:
-    # This job always runs to check if Fortify is configured
-    runs-on: ubuntu-latest
-    outputs:
-      fortify-enabled: ${{ steps.check.outputs.enabled }}
-    steps:
-      - name: Check Fortify Configuration
-        id: check
-        run: |
-          if [ -n "${{ secrets.FOD_URL }}" ] && [ -n "${{ secrets.FOD_TENANT }}" ] && [ -n "${{ secrets.FOD_USER }}" ] && [ -n "${{ secrets.FOD_PASSWORD }}" ]; then
-            echo "enabled=true" >> $GITHUB_OUTPUT
-            echo "✅ Fortify on Demand credentials are configured"
-          else
-            echo "enabled=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Fortify on Demand credentials are not configured - scan will be skipped"
-            echo "ℹ️ To enable Fortify scanning, configure the required secrets (FOD_URL, FOD_TENANT, FOD_USER, FOD_PASSWORD, FOD_RELEASE_ID)"
-          fi
-
   fortify-scan:
-    # Only run if Fortify secrets are configured
-    needs: check-fortify-config
-    if: needs.check-fortify-config.outputs.fortify-enabled == 'true'
     runs-on: ubuntu-latest
+    # Continue even if this job fails (missing credentials)
+    continue-on-error: true
     
     steps:
+      - name: Check Fortify Configuration
+        id: check-config
+        run: |
+          if [ -z "${{ secrets.FOD_URL }}" ] || [ -z "${{ secrets.FOD_TENANT }}" ] || [ -z "${{ secrets.FOD_USER }}" ] || [ -z "${{ secrets.FOD_PASSWORD }}" ]; then
+            echo "::warning::Fortify on Demand credentials are not configured. Scan will be skipped."
+            echo "::notice::To enable Fortify scanning, configure the required secrets: FOD_URL, FOD_TENANT, FOD_USER, FOD_PASSWORD, FOD_RELEASE_ID"
+            echo "configured=false" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "::notice::Fortify on Demand credentials are configured. Proceeding with scan."
+            echo "configured=true" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Checkout Repository
+        if: steps.check-config.outputs.configured == 'true'
         uses: actions/checkout@v4
       
       - name: Setup Node.js
+        if: steps.check-config.outputs.configured == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -76,16 +72,19 @@ jobs:
       
       # Install dependencies for backend
       - name: Install Backend Dependencies
+        if: steps.check-config.outputs.configured == 'true'
         working-directory: ./googledrive-backend
         run: npm ci --ignore-scripts
       
       # Install dependencies for frontend
       - name: Install Frontend Dependencies
+        if: steps.check-config.outputs.configured == 'true'
         working-directory: ./googledrive-frontend
         run: npm ci --ignore-scripts
       
       # Run Fortify on Demand Static Analysis
       - name: Run Fortify on Demand SAST Scan
+        if: steps.check-config.outputs.configured == 'true'
         uses: fortify/github-action@v1
         with:
           sast-scan: true
@@ -98,7 +97,7 @@ jobs:
       
       # Optional: Upload scan logs as artifacts for debugging
       - name: Upload Scan Logs
-        if: always()
+        if: always() && steps.check-config.outputs.configured == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: fortify-scan-logs
