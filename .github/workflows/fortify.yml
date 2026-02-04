@@ -1,0 +1,94 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow performs a static security analysis of your source code using
+# Fortify on Demand (FoD). This workflow is intended for applications that 
+# are already onboarded to FoD. If you are not using FoD, you can remove this file.
+
+name: Fortify Security Scan
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  fortify-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            googledrive-backend/package-lock.json
+            googledrive-frontend/package-lock.json
+      
+      # Install dependencies for backend
+      - name: Install Backend Dependencies
+        working-directory: ./googledrive-backend
+        run: npm ci --ignore-scripts
+      
+      # Install dependencies for frontend
+      - name: Install Frontend Dependencies
+        working-directory: ./googledrive-frontend
+        run: npm ci --ignore-scripts
+      
+      # Run Fortify on Demand Static Analysis
+      - name: Run Fortify on Demand SAST Scan
+        uses: fortify/github-action@v1
+        with:
+          sast-scan: true
+        env:
+          FOD_URL: ${{ secrets.FOD_URL }}
+          FOD_TENANT: ${{ secrets.FOD_TENANT }}
+          FOD_USER: ${{ secrets.FOD_USER }}
+          FOD_PASSWORD: ${{ secrets.FOD_PASSWORD }}
+          FOD_RELEASE_ID: ${{ secrets.FOD_RELEASE_ID }}
+      
+      # Export results to SARIF format for GitHub Security tab
+      - name: Export Fortify Results
+        if: always()
+        uses: fortify/github-action@v1
+        with:
+          export-to-sarif: true
+        env:
+          FOD_URL: ${{ secrets.FOD_URL }}
+          FOD_TENANT: ${{ secrets.FOD_TENANT }}
+          FOD_USER: ${{ secrets.FOD_USER }}
+          FOD_PASSWORD: ${{ secrets.FOD_PASSWORD }}
+          FOD_RELEASE_ID: ${{ secrets.FOD_RELEASE_ID }}
+      
+      # Upload SARIF file to GitHub Security tab
+      - name: Upload SARIF file
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ./gh-fortify-sast.sarif
+      
+      # Optional: Upload scan logs as artifacts for debugging
+      - name: Upload Scan Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fortify-scan-logs
+          path: |
+            fortify.log
+            **/*.fpr
+          retention-days: 30
