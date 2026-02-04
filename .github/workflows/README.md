@@ -6,7 +6,7 @@ This directory contains automated workflows for the Google Drive Clone project.
 
 ### 1. Fortify Security Scan (`fortify.yml`)
 
-This workflow performs static application security testing (SAST) using Fortify on Demand.
+**Added in this PR** - This workflow performs static application security testing (SAST) using Fortify on Demand.
 
 #### Features:
 - **Automated Security Scanning**: Runs static analysis on both backend and frontend code
@@ -54,7 +54,7 @@ If you're not using Fortify on Demand, you can:
 
 ### 2. Node.js Package (`npm-publish.yml`)
 
-This workflow publishes the package to npm when a release is created.
+**Existing workflow** - This workflow publishes the package to npm when a release is created.
 
 #### Triggers:
 - GitHub release creation
